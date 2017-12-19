@@ -211,8 +211,15 @@ sub export_sims {
         \%{ $caller . '::' };
     };
 
-    my @sim_funcs = grep { *{ $symbols->{$_} }{CODE} }
-      grep /^sim_/, keys %$symbols;
+    my @sim_keys = grep /^sim_/, keys %$symbols;
+    my @sim_funcs;
+    for my $s (@sim_keys) {
+        push @sim_funcs, $s if (
+            ( ref( $symbols->{$s}) eq 'CODE' ) or # perl-5.27.7 and after
+            ( *{ $symbols->{$s} }{CODE} )         # up to perl-5.27.6
+        );
+    }
+      
     for my $func (@sim_funcs) {
         _add_to_export( $caller, $func );
         _add_to_export_tags( $caller, $func, 'sims' );
